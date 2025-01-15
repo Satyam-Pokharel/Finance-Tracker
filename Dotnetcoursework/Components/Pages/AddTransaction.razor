@@ -1,0 +1,106 @@
+﻿@page "/addTransaction"
+@inject NavigationManager NavigationManager
+@inject TransactionDB _transactionDB
+@using SQLite
+@using Services
+@using System.ComponentModel.DataAnnotations
+@using Dotnetcoursework.Model
+
+<div class="container mt-5">
+    <h2>Add Transaction</h2>
+
+    <EditForm Model="@transaction" OnValidSubmit="AddTransactions">
+        <DataAnnotationsValidator />
+
+        <div class="mb-3">
+            <label for="customerName" class="form-label">Transaction Name</label>
+            <InputText id="customerName" class="form-control" @bind-Value="transaction.TransactionName" />
+            <ValidationMessage For="@(() => transaction.TransactionName)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="amount" class="form-label">Transaction Amount</label>
+            <InputNumber id="amount" class="form-control" @bind-Value="transaction.TransactionAmount" />
+            <ValidationMessage For="@(() => transaction.TransactionAmount)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="source" class="form-label">Transaction Source</label>
+            <InputText id="source" class="form-control" @bind-Value="transaction.TransactionSource" />
+            <ValidationMessage For="@(() => transaction.TransactionSource)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="notes" class="form-label">Transaction Notes (Optional)</label>
+            <InputText id="notes" class="form-control" @bind-Value="transaction.TransactionNotes" />
+        </div>
+
+        <div class="mb-3">
+            <label for="time" class="form-label">Transaction Time</label>
+            <InputDate id="time" class="form-control" @bind-Value="transaction.TransactionTime" />
+            <ValidationMessage For="@(() => transaction.TransactionTime)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="transactionType" class="form-label">Transaction Type</label>
+            <select id="transactionType" class="form-control" @bind="transaction.TransactionType">
+                <option value="Credit">Credit</option>
+                <option value="Debit">Debit</option>
+            </select>
+            <ValidationMessage For="@(() => transaction.TransactionType)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="defaultTag" class="form-label">Default Tag</label>
+            <select id="defaultTag" class="form-control" @bind="transaction.TransactionDefaultTag">
+                <option value="Food">Food</option>
+                <option value="Salary">Salary</option>
+            </select>
+            <ValidationMessage For="@(() => transaction.TransactionDefaultTag)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="customTag" class="form-label">Custom Tag</label>
+            <InputText id="customTag" class="form-control" @bind-Value="transaction.TransactionCustomTags" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add</button>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="mt-3 alert @(statusMessage.Contains("error") ? "alert-danger" : "alert-success")">
+            @statusMessage
+        </div>
+    }
+</div>
+
+@code {
+    private TransactionModel transaction = new TransactionModel();
+    private string statusMessage = string.Empty;
+
+    private async Task AddTransactions()
+    {
+        try
+        {
+            var success = await _transactionDB.AddTransaction(transaction);
+            if (success)
+            {
+                statusMessage = "Transaction added successfully!";
+                NavigationManager.NavigateTo("/transaction");
+            }
+            else
+            {
+                statusMessage = "Failed to add transaction. Please try again.";
+            }
+        }
+        catch (SQLiteException sqlex)
+        {
+            statusMessage = $"Database error: {sqlex.Message}";
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"An unexpected error occurred: {ex.Message}";
+        }
+    }
+}

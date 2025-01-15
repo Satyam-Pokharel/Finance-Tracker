@@ -1,0 +1,61 @@
+﻿@page "/add-transaction"
+@inject NavigationManager NavigationManager
+@inject Dotnetcoursework.Services.DebtDb DebtDbService
+@using Dotnetcoursework.Model
+
+<div class="container mt-5">
+    <h2>Add Debt</h2>
+
+    <EditForm Model="@debt" OnValidSubmit="AddDebtAsync">
+        <DataAnnotationsValidator />
+
+        <div class="mb-3">
+            <label for="debtSource" class="form-label">Debt Source</label>
+            <InputText id="debtSource" class="form-control" @bind-Value="debt.DebtSource" />
+            <ValidationMessage For="@(() => debt.DebtSource)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="amount" class="form-label">Debt Amount</label>
+            <InputNumber id="amount" class="form-control" @bind-Value="debt.DebtAmount" />
+            <ValidationMessage For="@(() => debt.DebtAmount)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="dueDate" class="form-label">Debt Due Date</label>
+            <InputDate id="dueDate" class="form-control" @bind-Value="debt.DebtDueDate" />
+            <ValidationMessage For="@(() => debt.DebtDueDate)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Debt</button>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="mt-3 alert @(statusMessage.Contains("error") ? "alert-danger" : "alert-success")">
+            @statusMessage
+        </div>
+    }
+</div>
+
+@code {
+    private Debts debt = new Debts(); // Corrected type
+    private string statusMessage = string.Empty;
+
+    private async Task AddDebtAsync()
+    {
+        try
+        {
+            var success = await DebtDbService.AddTransaction(debt);
+            statusMessage = success ? "Debt added successfully!" : "Failed to add debt.";
+            if (success)
+            {
+                debt = new Debts(); // Reset form after success
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+}

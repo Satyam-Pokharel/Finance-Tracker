@@ -1,0 +1,58 @@
+﻿@page "/debts"
+@inject DebtDb DebtDbService
+@using Dotnetcoursework.Model
+@using Dotnetcoursework.Services
+
+<h1>All Debts</h1>
+<div>
+    @if (debts.Count > 0)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Source</th>
+                    <th>Amount</th>
+                    <th>Due Date</th>
+                    <th>Is Cleared</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var debts in debts)
+                {
+                    <tr>
+                        <td>@debts.DebtSource</td>
+                        <td>@debts.DebtAmount.ToString("C")</td>
+                        <td>@debts.DebtDueDate.ToShortDateString()</td>
+                        <td>@(debts.IsCleared ? "Yes" : "No")</td>
+                        <td>
+                            @if (!debts.IsCleared)
+                            {
+                                <button class="btn btn-success" @onclick="() => ClearDebt(debts.Id)">Clear</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No debts found.</p>
+    }
+</div>
+
+@code {
+    private List<Debts> debts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        debts = await DebtDbService.GetAllDebts();
+    }
+
+    private async Task ClearDebt(Guid id)
+    {
+        await DebtDbService.ClearDebt(id);
+        debts = await DebtDbService.GetAllDebts(); // Refresh the list
+    }
+}

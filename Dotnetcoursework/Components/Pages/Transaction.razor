@@ -1,0 +1,55 @@
+﻿@page "/transaction"
+@inject NavigationManager NavigationManager
+@inject TransactionDB _transactionDB
+@using SQLite
+@using Services
+@using System.ComponentModel.DataAnnotations
+@using Dotnetcoursework.Model
+
+<h1>Transactions</h1>
+<div>
+	@foreach(var transaction in transactions) {
+		<ul>
+			<li>@transaction.TransactionName, @transaction.TransactionAmount, @transaction.TransactionTime</li>
+		</ul>
+	}
+</div>
+
+<h1>Cash Outflows</h1>
+<div>
+	@foreach (var transaction in outflows)
+	{
+		<ul>
+			<li>@transaction.TransactionName, @transaction.TransactionAmount, @transaction.TransactionTime</li>
+		</ul>
+	}
+</div>
+
+<h1>Cash Inflows</h1>
+<div>
+	@foreach (var transaction in inflows)
+	{
+		<ul>
+			<li>@transaction.TransactionName, @transaction.TransactionAmount, @transaction.TransactionTime</li>
+		</ul>
+	}
+</div>
+
+@code {
+	private List<TransactionModel> transactions = new List<TransactionModel>();
+	private List<TransactionModel> outflows = new List<TransactionModel>();
+	private List<TransactionModel> inflows = new List<TransactionModel>();
+	private Double inflowTotal;
+	private Double outflowTotal;
+	private double Balance;
+
+	protected override async Task OnInitializedAsync()
+	{
+		transactions = await _transactionDB.GetAllTransactions();
+		outflows = transactions.Where(t => t.TransactionType == "Debit").OrderByDescending(t => t.TransactionTime).ToList();
+		inflows = transactions.Where(t => t.TransactionType == "Credit").OrderByDescending(t => t.TransactionTime).ToList();
+		outflowTotal = outflows.Sum(t => t.TransactionAmount);
+		inflowTotal = inflows.Sum(t => t.TransactionAmount);
+		Balance = inflowTotal - outflowTotal;
+	}
+}
